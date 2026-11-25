@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Electronics Basics Activity</title>
+<style>
+:root{--bg:#fbfcfe;--card:#fff;--ink:#2b3a55;--mute:#74829a;--line:#e4eaf2;--ok:#2fae78;--okbg:#eafaf2;--bad:#e06666;--badbg:#fff0f0;--led:#ffd54a;--pick:#f1f6fd;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",Tahoma,Helvetica,Arial,sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:1.7rem;line-height:1.2;margin:8px 0 4px}
+.sub{color:var(--mute);margin:0 0 18px}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+.track{flex:1;height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.fill{height:100%;width:0;background:var(--led);transition:width .3s}
+.score{font-weight:700;white-space:nowrap}
+h2{font-size:1.15rem;margin:30px 0 4px}
+.hint{color:var(--mute);margin:0 0 12px;font-size:.92rem}
+h3{font-size:1rem;margin:20px 0 8px;color:var(--mute);font-weight:600}
+.q{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin:0 0 12px}
+.q p{margin:0 0 10px;font-weight:600}
+.opts{display:grid;gap:8px}
+.opts.two{grid-template-columns:1fr 1fr}
+button.o{font:inherit;color:inherit;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer}
+.two button.o{text-align:center}
+button.o:hover:not(:disabled){background:var(--pick)}
+button.o:focus-visible,button.reset:focus-visible{outline:3px solid var(--led);outline-offset:2px}
+button.o:disabled{cursor:default}
+button.o.right{background:var(--okbg);border-color:var(--ok)}
+button.o.wrong{background:var(--badbg);border-color:var(--bad)}
+.fb{display:none;margin:10px 0 0;font-size:.92rem;color:var(--mute)}
+.fb b{color:var(--ink)}
+.done{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-top:26px;display:none}
+.done strong{font-size:1.3rem}
+button.reset{font:inherit;font-weight:600;margin-top:12px;background:var(--ink);color:var(--bg);border:0;border-radius:8px;padding:10px 18px;cursor:pointer}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.05)}100%{transform:scale(1)}}
+@keyframes shk{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+button.o.right{animation:pop .45s}
+button.o.wrong{animation:shk .4s}
+.q.good{border-color:var(--ok);box-shadow:0 0 0 3px var(--okbg)}
+.q.bad{border-color:var(--bad);box-shadow:0 0 0 3px var(--badbg)}
+.cf{position:fixed;width:8px;height:12px;border-radius:2px;pointer-events:none;z-index:50}
+.fl{position:fixed;font-weight:700;color:var(--ok);background:var(--card);border:1.5px solid var(--ok);border-radius:20px;padding:3px 12px;pointer-events:none;z-index:51;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){button.o.right,button.o.wrong{animation:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>Electronics Basics Activity</h1>
+<p class="sub">Lesson 1: Electronics Basics, Circuits &amp; Testing. Pick an answer for each question. You will see right away if it is correct.</p>
+<div class="bar"><div class="track"><div class="fill" id="fill"></div></div><div class="score" id="score">0 / 0</div></div>
+<div id="quiz"></div>
+<div class="done" id="done"><strong id="final"></strong><div id="msg"></div><button class="reset" id="again">Try again</button></div>
+</main>
+<script>
+var S=[
+{h:"Part 1: Definitions",d:"Choose the correct definition.",type:"mc",items:[
+["Electronics is…",["Using electrical energy and electronic components to control, process, or transmit signals and information","Only the study of computers","Generating power in power plants","Making batteries"],0,"Electronic systems receive information, process it, control something, and produce an output."],
+["Electric current is…",["The push that forces charge to move","The flow of electric charge (electrons) in one direction through a conductor","The opposition to the flow of charge","How fast energy is converted"],1,"Current is how much charge passes a point each second."],
+["Voltage is…",["The electrical pressure (push) that forces charge to move","The flow of charge in a wire","The opposition to current","The heat produced by a resistor"],0,"Water analogy: voltage is like water pressure."],
+["Resistance is…",["The amount of charge passing each second","The opposition a material offers to the flow of current","The push that moves charge","The speed of electrons"],1,"Water analogy: a resistor is like a narrow section of pipe."],
+["Power is…",["The opposition to current","The pressure in a circuit","How fast electrical energy is converted into another form (heat, light, motion)","A type of battery"],2,"Power is measured in Watts (W) and P = V × I."],
+["An electric circuit is…",["A complete path that allows current to flow","A single wire","Only a battery","A type of resistor"],0,"A basic circuit has a source, conductors, a load, and a control."],
+["A closed circuit is…",["A circuit with a break, so no current flows","A complete, unbroken path from the source through the load and back, so the load works","A path with almost zero resistance","A circuit with no source"],1,"Example: the switch is ON and the lamp lights."],
+["An open circuit is…",["A complete path where current flows","A path with a break somewhere, so no current flows","A path across the source with almost zero resistance","A circuit that uses AC"],1,"Example: the switch is OFF and the lamp is dark."],
+["A short circuit is…",["A circuit with a very short wire","A circuit with the switch OFF","An unintended very low resistance path between two points of different voltage","A circuit with a very high resistance"],2,"It causes a very large current, overheating, melted wires, or fire."],
+["A resistor is…",["An active component that generates energy","A passive two-terminal component that provides a specific amount of resistance","A component that produces light","A tool to build circuits without soldering"],1,"Passive means it does not generate energy. It restricts current and turns electrical energy into heat."],
+["A LED is…",["A Light Emitting Diode, a component that produces light when current flows through it in the correct direction","A component that stores energy","A tool that measures voltage","A type of switch"],0,"An LED has polarity and needs a resistor to limit the current."],
+["Direct Current (DC) is…",["Current that reverses its direction periodically","Current that flows in one direction only, with fixed voltage polarity","Current that flows only in an open circuit","Current with no voltage"],1,"Sources: batteries, solar cells, USB chargers."],
+["Alternating Current (AC) is…",["Current that flows in one direction only","Current that periodically reverses its direction","Current from a battery","Current with zero voltage"],1,"The most common shape is the sine wave. Sources: power plants and wall outlets."],
+["A breadboard is…",["A tool used to build and test circuits without soldering","A type of battery","A kind of resistor","A power meter"],0,"Some holes are connected internally, so check the connected rows and power rails first."]
+]},
+{h:"Part 2: Symbols and Units",d:"Choose the correct symbol, unit, or instrument.",type:"mc",items:[
+["What is the symbol of current?",["V","I","R","P"],1,"Current: symbol I, unit Ampere (A)."],
+["What is the symbol of voltage?",["V","I","Ω","W"],0,"Voltage: symbol V, unit Volt (V)."],
+["What is the symbol of resistance?",["I","R","V","P"],1,"Resistance: symbol R, unit Ohm (Ω)."],
+["What is the symbol of power?",["W","V","P","A"],2,"Power: symbol P, unit Watt (W). The letter W is the unit."],
+["What is the unit of current?",["Volt","Ampere","Ohm","Watt"],1,"Current is measured in Amperes (A)."],
+["What is the unit of voltage?",["Volt","Ampere","Ohm","Watt"],0,"Voltage is measured in Volts (V)."],
+["What is the unit of power?",["Volt","Ampere","Ohm","Watt"],3,"Power is measured in Watts (W)."],
+["Which symbol is used for the Ohm?",["Ω","V","A","W"],0,"Ohm is written Ω."],
+["Which instrument measures voltage, and how is it connected?",["Ammeter, in series","Voltmeter, in parallel across the component","Ohmmeter, in series","Wattmeter, in series"],1,"A voltmeter is connected in parallel across the component."],
+["Which instrument measures current, and how is it connected?",["Ammeter, in series with the circuit","Voltmeter, in parallel","Ohmmeter, in parallel","Wattmeter, in parallel"],0,"An ammeter is connected in series."],
+["Which instrument measures resistance?",["Voltmeter","Ammeter","Ohmmeter, with the component disconnected from power","Wattmeter"],2,"Always disconnect the component from power before measuring resistance."],
+["1 mA (milliampere) equals…",["0.001 A","0.01 A","1,000 A","0.000001 A"],0,"1 mA = 0.001 A."],
+["1 µA (microampere) equals…",["0.001 A","0.000001 A","0.1 A","1,000 A"],1,"1 µA = 0.000001 A."],
+["1 kΩ equals…",["10 Ω","100 Ω","1,000 Ω","1,000,000 Ω"],2,"1 kΩ = 1,000 Ω. 1 MΩ = 1,000,000 Ω."],
+["What is the formula of power?",["P = V / I","P = V × I","P = I / V","P = V + I"],1,"Power equals voltage times current."],
+["What is Ohm’s law?",["V = I × R","V = I + R","V = R / I","V = I / R"],0,"V = I × R, so I = V / R and R = V / I."]
+]},
+{h:"Part 3: True or False",d:"Is the statement true or false?",type:"tf",items:[
+["Voltage is measured with a voltmeter connected in series with the component.",1,"False. A voltmeter is connected in parallel across the component. An ammeter is the one connected in series."],
+["In an open circuit there is a break in the path, so the current is 0 A.",0,"True. With a break in the path no current flows, and the full source voltage appears across the break."],
+["Conventional current is drawn flowing from the positive (+) terminal to the negative (−) terminal.",0,"True. Electrons actually move the opposite way, but circuit diagrams use conventional current."],
+["A resistor generates electrical energy for the circuit.",1,"False. A resistor is passive. It only restricts current and converts electrical energy into heat."],
+["A short circuit has a very high resistance, so the current is very small.",1,"False. A short circuit has almost zero resistance, so by Ohm’s law (I = V / R) the current becomes dangerously high."],
+["Most electronic components, such as ICs and microcontrollers, need a steady DC supply.",0,"True. A power adapter converts AC to DC using a transformer, rectifier, filter, and regulator."],
+["In a series circuit, the voltages across the resistors add up to the total voltage.",0,"True. In series the same current flows through every resistor, and V(total) = V1 + V2 + V3."],
+["An LED works the same way if you connect it in either direction.",1,"False. An LED has polarity. It lights only when current flows through it in the correct direction."],
+["Current is measured in Amperes (A) and resistance is measured in Ohms (Ω).",0,"True. Voltage is measured in Volts (V) and power in Watts (W)."],
+["If the voltage increases and the resistance stays the same, the current increases.",0,"True. I = V / R, so a higher V gives a higher I."],
+["If the resistance increases and the voltage stays the same, the current increases.",1,"False. The current decreases."],
+["If you double the voltage and the resistance stays the same, the current doubles.",0,"True. It is a straight-line relationship."],
+["1 kΩ equals 100 Ω.",1,"False. 1 kΩ = 1,000 Ω."],
+["An ohmmeter is used while the component is still connected to power.",1,"False. Disconnect the component from power first."],
+["A fuse opens the circuit automatically when the current is too high.",0,"True. Fuses and circuit breakers protect against short circuits."],
+["Electrons actually move in the opposite direction to conventional current.",0,"True. Conventional current is drawn from + to −, electrons move from − to +."],
+["A phone’s internal circuits work directly on AC from the wall socket.",1,"False. Most electronic components need DC, so an adapter converts AC to DC."],
+["In a series circuit, the total resistance is smaller than the smallest resistor.",1,"False. In series the total is always larger than the largest resistor."],
+["The power rating of a device can be found with P = V × I.",0,"True. For example 12 V × 2 A = 24 W."],
+["A voltmeter is connected in series with the component.",1,"False. It is connected in parallel across the component."]
+]},
+{h:"Part 4: Choose the Correct Answer",d:"Select the best answer.",type:"mc",items:[
+["What is the unit of resistance?",["Volt (V)","Ampere (A)","Ohm (Ω)","Watt (W)"],2,"Resistance (R) is measured in Ohms (Ω)."],
+["A circuit has V = 12 V and I = 3 A. What is the resistance?",["36 Ω","4 Ω","9 Ω","0.25 Ω"],1,"R = V / I = 12 / 3 = 4 Ω."],
+["A 4-band resistor has the colors Yellow, Violet, Orange, Gold. What is its value?",["47 Ω ±5%","470 Ω ±5%","4.7 kΩ ±5%","47 kΩ ±5%"],3,"Yellow = 4, Violet = 7, Orange = ×1,000, so 47 kΩ. Gold means ±5%."],
+["An SMD resistor is printed “472”. What is its value?",["472 Ω","47 kΩ","4.7 kΩ","4.72 Ω"],2,"47 × 10² = 4,700 Ω = 4.7 kΩ."],
+["R1 = 100 Ω, R2 = 220 Ω, and R3 = 330 Ω are connected in series. What is the total resistance?",["650 Ω","550 Ω","330 Ω","Less than 100 Ω"],0,"In series the resistances add up: 100 + 220 + 330 = 650 Ω."],
+["Why do we connect a resistor in series with an LED?",["To make it brighter than normal","To limit the current so the LED does not burn out","To change AC into DC","To measure its voltage"],1,"Once an LED conducts it does not limit the current itself, so the resistor protects it."],
+["A circuit does not work. What should you suspect first?",["A short circuit","Too much voltage","An open circuit","The wrong battery color"],2,"Check for an open circuit first: the switch, fuse, connectors, and solder joints."],
+["Which instrument is connected in series to measure current?",["Voltmeter","Ammeter","Ohmmeter","Breadboard"],1,"An ammeter measures current and is connected in series with the circuit."],
+["V = 6 V and R = 2 Ω. What is the current?",["12 A","3 A","0.33 A","8 A"],1,"I = V / R = 6 / 2 = 3 A."],
+["I = 2 A and R = 5 Ω. What is the voltage?",["10 V","2.5 V","7 V","0.4 V"],0,"V = I × R = 2 × 5 = 10 V."],
+["V = 10 V and R = 5 Ω. What is the current?",["50 A","15 A","2 A","0.5 A"],2,"I = V / R = 10 / 5 = 2 A."],
+["I = 2 A and R = 4 Ω. What is the voltage?",["8 V","2 V","0.5 V","6 V"],0,"V = I × R = 2 × 4 = 8 V."],
+["V = 12 V and I = 2 A. What is the resistance?",["24 Ω","10 Ω","6 Ω","14 Ω"],2,"R = V / I = 12 / 2 = 6 Ω."],
+["A device uses 12 V and 2 A. What is its power?",["6 W","14 W","10 W","24 W"],3,"P = V × I = 12 × 2 = 24 W."],
+["If the voltage stays the same and the resistance increases, what happens to the current?",["It increases","It decreases","It stays the same","It becomes AC"],1,"I = V / R, so a larger R gives a smaller I."],
+["A resistor has the colors Brown, Black, Red, Gold. What is its value?",["10 Ω ±5%","100 Ω ±5%","1 kΩ ±5%","10 kΩ ±5%"],2,"Brown = 1, Black = 0, Red = ×100, so 1 kΩ. Gold means ±5%."],
+["A 12 V battery is shorted with a 0.01 Ω wire. What current would it try to deliver?",["120 A","1,200 A","12 A","0.0008 A"],1,"I = V / R = 12 / 0.01 = 1,200 A."],
+["A circuit has the source, wires, a lamp, and a switch. Which part is the load?",["The battery","The wires","The lamp","The switch"],2,"The load uses the energy. The switch is the control."]
+]},
+{h:"Part 5: Compare",d:"Decide which type each statement describes.",type:"cmp",groups:[
+{t:"Series or Parallel?",o:["Series","Parallel"],items:[
+["The same current flows through every resistor.",0,"Series has one path, so the current is the same everywhere."],
+["If one branch is open, the other branches may keep working.",1,"Parallel has separate branches, like lights that each have their own branch."],
+["The total resistance is R1 + R2 + R3.",0,"In series the resistances add up."],
+["Components are connected on separate paths.",1,"That is the definition of a parallel connection."]]},
+{t:"AC or DC?",o:["AC","DC"],items:[
+["Current reverses its direction periodically.",0,"AC rises to a positive peak, falls through zero, and reaches a negative peak."],
+["Supplied by a battery or a USB charger.",1,"Batteries, solar cells, and USB chargers give DC."],
+["The wall socket in your home.",0,"Mains power is AC, typically 220–240 V at 50 Hz."]]},
+{t:"Open circuit or Short circuit?",o:["Open circuit","Short circuit"],items:[
+["The current is 0 A.",0,"A break in the path stops the current."],
+["Very low resistance across the source, causing a huge current.",1,"It can cause overheating, melted wires, or fire. Fuses and circuit breakers protect against it."],
+["A switch turned OFF.",0,"This is not a fault. Turning a switch off deliberately opens the circuit."]]},
+{t:"Voltage or Current?",o:["Voltage","Current"],items:[
+["Similar to water pressure in a pipe.",0,"Voltage is the push that drives charge through the circuit."],
+["Similar to the flow rate of water.",1,"Current is how much charge passes a point each second."],
+["Measured in Amperes (A).",1,"Current is measured in Amperes."],
+["Measured in Volts (V).",0,"Voltage is measured in Volts."],
+["Symbol I.",1,"Current uses the symbol I. Voltage uses V."]]},
+{t:"Voltmeter or Ammeter?",o:["Voltmeter","Ammeter"],items:[
+["Connected in parallel across the component.",0,"A voltmeter measures the voltage across a component."],
+["Connected in series with the circuit.",1,"An ammeter measures the current flowing through the circuit."],
+["Measures current in Amperes.",1,"That is the ammeter."]]},
+{t:"Resistance or Power?",o:["Resistance","Power"],items:[
+["Symbol R, unit Ohm (Ω).",0,"Resistance is the opposition to current."],
+["Symbol P, unit Watt (W).",1,"Power is how fast energy is converted."],
+["Measured with an ohmmeter, with the component disconnected from power.",0,"Resistance is measured with an ohmmeter."],
+["Calculated with P = V × I.",1,"Power equals voltage times current."]]}
+]}
+];
+var total=0,answered=0,correct=0;
+var quiz=document.getElementById("quiz");
+function ask(box,text,opts,ans,exp,two){
+ total++;
+ var q=document.createElement("div");q.className="q";
+ var p=document.createElement("p");p.textContent=text;q.appendChild(p);
+ var w=document.createElement("div");w.className="opts"+(two?" two":"");
+ var fb=document.createElement("div");fb.className="fb";
+ var btns=[];
+ opts.forEach(function(label,i){
+  var b=document.createElement("button");b.type="button";b.className="o";b.textContent=label;
+  b.onclick=function(){
+   btns.forEach(function(x){x.disabled=true});
+   var ok=i===ans;
+   b.classList.add(ok?"right":"wrong");
+   if(!ok)btns[ans].classList.add("right");
+   fb.style.display="block";
+   fb.innerHTML="<b>"+(ok?"Correct. ":"Not quite. ")+"</b>";
+   fb.appendChild(document.createTextNode(exp));
+   answered++;if(ok)correct++;update();if(ok){q.classList.add("good");celebrate(b)}else{q.classList.add("bad");oops(q)}
+  };
+  btns.push(b);w.appendChild(b);
+ });
+ q.appendChild(w);q.appendChild(fb);box.appendChild(q);
+}
+function build(){
+ quiz.innerHTML="";total=0;answered=0;correct=0;streak=0;
+ S.forEach(function(s){
+  var h=document.createElement("h2");h.textContent=s.h;quiz.appendChild(h);
+  var d=document.createElement("p");d.className="hint";d.textContent=s.d;quiz.appendChild(d);
+  if(s.type==="tf")s.items.forEach(function(it){ask(quiz,it[0],["True","False"],it[1],it[2],true)});
+  if(s.type==="mc")s.items.forEach(function(it){ask(quiz,it[0],it[1],it[2],it[3],false)});
+  if(s.type==="cmp")s.groups.forEach(function(g){
+   var t=document.createElement("h3");t.textContent=g.t;quiz.appendChild(t);
+   g.items.forEach(function(it){ask(quiz,it[0],g.o,it[1],it[2],true)});
+  });
+ });
+ update();
+}
+function update(){
+ document.getElementById("score").textContent=correct+" / "+total;
+ document.getElementById("fill").style.width=(total?answered/total*100:0)+"%";
+ var done=document.getElementById("done");
+ if(answered===total&&total>0){
+  document.getElementById("final").textContent="Your score: "+correct+" / "+total;
+  var r=correct/total;
+  document.getElementById("msg").textContent=r>=0.9?"Excellent work. You are ready for the lab.":r>=0.6?"Good. Review the questions you missed and try again.":"Review the lesson, then try again.";
+  if(done.style.display!=="block"){for(var k=0;k<5;k++)setTimeout(function(){burst(Math.random()*innerWidth,innerHeight*0.3,26)},k*250)}
+  done.style.display="block";
+ } else done.style.display="none";
+}
+var COL=["#ffd54a","#2fae78","#5aa9ff","#ff8fab","#b388ff"],streak=0,WORDS=["⭐ Correct!","👏 Great!","💡 Nice!","✨ Well done!","🎉 Awesome!"];
+var RM=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+function burst(x,y,n){
+ if(RM)return;
+ for(var i=0;i<n;i++){
+  var s=document.createElement("span");s.className="cf";
+  s.style.left=x+"px";s.style.top=y+"px";s.style.background=COL[i%COL.length];
+  document.body.appendChild(s);
+  var a=Math.random()*Math.PI*2,d=60+Math.random()*100;
+  var an=s.animate([{transform:"translate(0,0) rotate(0deg)",opacity:1},{transform:"translate("+Math.cos(a)*d+"px,"+(Math.sin(a)*d+60)+"px) rotate("+(Math.random()*540)+"deg)",opacity:0}],{duration:800+Math.random()*500,easing:"cubic-bezier(.2,.7,.3,1)"});
+  an.onfinish=(function(e){return function(){e.remove()}})(s);
+ }
+}
+function floatText(t,x,y){
+ var s=document.createElement("span");s.className="fl";s.textContent=t;
+ s.style.left=x+"px";s.style.top=y+"px";document.body.appendChild(s);
+ if(RM){setTimeout(function(){s.remove()},1200);return}
+ var an=s.animate([{transform:"translate(-50%,0)",opacity:0},{transform:"translate(-50%,-30px)",opacity:1,offset:.25},{transform:"translate(-50%,-80px)",opacity:0}],{duration:1300,easing:"ease-out"});
+ an.onfinish=function(){s.remove()};
+}
+function celebrate(b){
+ var r=b.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
+ streak++;
+ burst(x,y,streak>=3?34:22);
+ floatText(streak>=3?"🔥 "+streak+" in a row!":WORDS[Math.floor(Math.random()*WORDS.length)],x,y-10);
+ if(!RM)document.getElementById("score").animate([{transform:"scale(1)"},{transform:"scale(1.3)"},{transform:"scale(1)"}],{duration:350});
+}
+function oops(q){
+ streak=0;
+ if(!RM)q.animate([{transform:"translateX(0)"},{transform:"translateX(-8px)"},{transform:"translateX(8px)"},{transform:"translateX(-5px)"},{transform:"translateX(0)"}],{duration:380});
+}
+document.getElementById("again").onclick=function(){build();window.scrollTo(0,0)};
+build();
+</script>
+</body>
+</html>
